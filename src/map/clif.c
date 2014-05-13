@@ -15065,6 +15065,24 @@ void clif_cashshop_ack(struct map_session_data* sd, int error)
 	WFIFOSET(fd, packet_len(0x289));
 }
 
+// TODO: find a more accurate date for this  - Brynner
+#if PACKETVER >= 20120410
+void clif_parse_cashshop_buy( int fd, struct map_session_data *sd ){ 
+	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)]; 
+	uint16 length = RFIFOW( fd, info->pos[0] );
+	uint16 count = RFIFOW( fd, info->pos[1] );
+ 
+	if( length < 10 || length < ( 10 + count * 6 ) ){ 
+		return; 
+	}
+
+	cashshop_buylist( sd, RFIFOL( fd, info->pos[2] ),
+		count, (uint16 *)RFIFOP( fd, info->pos[3] ) ); 
+
+}
+#endif 
+
+
 void clif_cashshop_result( struct map_session_data *sd, uint16 item_id, uint16 result ){
 	WFIFOHEAD( sd->fd, 16 );
 	WFIFOW( sd->fd, 0 ) = 0x849;
@@ -15074,7 +15092,8 @@ void clif_cashshop_result( struct map_session_data *sd, uint16 item_id, uint16 r
 	WFIFOL( sd->fd, 12 ) = sd->kafraPoints;
 	WFIFOSET( sd->fd, 16 );
 }
-
+// TODO: find a more accurate date for this  - Brynner
+#if PACKETVER < 20120410
 /// Request to buy item(s) from cash shop (CZ_PC_BUY_CASH_POINT_ITEM).
 /// 0288 <name id>.W <amount>.W
 /// 0288 <name id>.W <amount>.W <kafra points>.L (PACKETVER >= 20070711)
@@ -15099,7 +15118,9 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd) {
 
 		clif_cashshop_ack(sd,npc_cashshop_buy(sd, nameid, amount, points));
 #else
+/* You Don't need for 2012-04-10aRagexe - Brynner
 		int s_itl = (cmd==0x848)?10:4; //item _list size (depend on cmd even for 2013+)
+*/
 		int len    = RFIFOW(fd,info->pos[0]);
 		int points = RFIFOL(fd,info->pos[1]);
 		int count  = RFIFOW(fd,info->pos[2]);
@@ -15109,6 +15130,7 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd) {
 			ShowWarning("Player %u sent incorrect cash shop buy packet (len %u:%u)!\n", sd->status.char_id, len, 10 + count * s_itl);
 			return;
 		}
+/*	You Don't need for 2012-04-10aRagexe - Brynner
 		if(cmd == 0x848) {
 			if (cashshop_buylist( sd, points, count, item_list))
 				clif_cashshop_ack(sd,0);
@@ -15118,8 +15140,11 @@ void clif_parse_cashshop_buy(int fd, struct map_session_data *sd) {
 			return;
 		}
 #endif
+*/
+#endif
 	}
 }
+#endif
 
 /// Adoption System
 ///
