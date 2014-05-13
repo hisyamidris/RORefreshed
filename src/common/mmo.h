@@ -20,8 +20,8 @@
 // see conf/battle/client.conf for other version
 
 #ifndef PACKETVER
-	#define PACKETVER 20130807
-	//#define PACKETVER 20120410
+	//#define PACKETVER 20130807
+	#define PACKETVER 20120410
 #endif
 
 ///Remove/Comment this line to disable sc_data saving. [Skotlex]
