@@ -6388,12 +6388,14 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		uint8 dir = map_calc_dir(target,src->x,src->y);
 		int t_dir = unit_getdir(target);
 		int dist = distance_bl(src, target);
-		if(dist <= 0 || (!map_check_dir(dir,t_dir) && dist <= tstatus->rhw.range+1))
+		if(dist <= 0 ||
+//[Shade]		(!map_check_dir(dir,t_dir) && 
+		dist <= tstatus->rhw.range+1)
 		{
 			uint16 skill_lv = tsc->data[SC_AUTOCOUNTER]->val1;
-			clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
+//			clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
 			clif_damage(src, target, tick, sstatus->amotion, 1, 0, 1, 0, 0); //Display MISS.
-			status_change_end(target, SC_AUTOCOUNTER, INVALID_TIMER);
+//			status_change_end(target, SC_AUTOCOUNTER, INVALID_TIMER);
 			skill_attack(BF_WEAPON,target,target,src,KN_AUTOCOUNTER,skill_lv,tick,0);
 			if (tsc->data[SC_CRUSHSTRIKE])
 				status_change_end(target, SC_CRUSHSTRIKE, INVALID_TIMER);
