@@ -1190,7 +1190,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 	case LK_JOINTBEAT:
 		status = status_skill2sc(skill_id);
 		if (tsc->jb_flag) {
-			sc_start4(src,bl,status,(5*skill_lv+5),skill_lv,tsc->jb_flag&BREAK_FLAGS,src->id,0,skill_get_time2(skill_id,skill_lv));
+			sc_start4(src,bl,status,10000,skill_lv,tsc->jb_flag&BREAK_FLAGS,src->id,0,skill_get_time2(skill_id,skill_lv));
 			tsc->jb_flag = 0;
 		}
 		break;
@@ -4061,13 +4061,30 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		break;
 
 	case LK_JOINTBEAT: // decide the ailment first (affects attack damage and effect)
-		switch( rnd()%6 ){
-		case 0: flag |= BREAK_ANKLE; break;
-		case 1: flag |= BREAK_WRIST; break;
-		case 2: flag |= BREAK_KNEE; break;
-		case 3: flag |= BREAK_SHOULDER; break;
-		case 4: flag |= BREAK_WAIST; break;
-		case 5: flag |= BREAK_NECK; break;
+		switch(skill_lv){
+		case 1:
+		case 2:
+			flag |= BREAK_ANKLE; break;
+			break;
+		case 3:
+		case 4:
+			flag |= BREAK_WRIST; break;
+			break;
+		case 5:
+		case 6:
+			flag |= BREAK_KNEE; break;
+			break;
+		case 7:
+		case 8:
+			flag |= BREAK_SHOULDER; break;
+			break;
+		case 9:
+		case 10:
+			flag |= BREAK_WAIST; break;
+				break;
+		default:
+			flag |= BREAK_NECK; break;
+			break;
 		}
 		//TODO: is there really no cleaner way to do this?
 		sc = status_get_sc(bl);
