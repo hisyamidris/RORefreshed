@@ -334,7 +334,7 @@ void initChangeTables(void)
 	set_sc( MO_EXTREMITYFIST	, SC_EXTREMITYFIST2	, SI_EXTREMITYFIST	, SCB_NONE );
 #endif
 	set_sc( SA_MAGICROD		, SC_MAGICROD	, SI_MAGICROD	, SCB_NONE );
-	set_sc( SA_AUTOSPELL		, SC_AUTOSPELL		, SI_AUTOSPELL		, SCB_NONE );
+	set_sc( SA_AUTOSPELL		, SC_AUTOSPELL		, SI_AUTOSPELL		, SCB_ALL );
 	set_sc( SA_FLAMELAUNCHER	, SC_FIREWEAPON		, SI_FIREWEAPON		, SCB_ATK_ELE );
 	set_sc( SA_FROSTWEAPON		, SC_WATERWEAPON	, SI_WATERWEAPON	, SCB_ATK_ELE );
 	set_sc( SA_LIGHTNINGLOADER	, SC_WINDWEAPON		, SI_WINDWEAPON		, SCB_ATK_ELE );
@@ -436,7 +436,7 @@ void initChangeTables(void)
 	set_sc( SM_SELFPROVOKE		, SC_PROVOKE		, SI_PROVOKE		, SCB_DEF|SCB_DEF2|SCB_BATK|SCB_WATK );
 	set_sc( ST_PRESERVE		, SC_PRESERVE		, SI_PRESERVE		, SCB_NONE );
 	set_sc( PF_DOUBLECASTING	, SC_DOUBLECAST		, SI_DOUBLECAST		, SCB_NONE );
-	set_sc( HW_GRAVITATION		, SC_GRAVITATION	, SI_GRAVITATION	, SCB_ASPD );
+	set_sc( HW_GRAVITATION		, SC_GRAVITATION	, SI_GRAVITATION	, SCB_ASPD|SCB_SPEED );
 	add_sc( WS_CARTTERMINATION	, SC_STUN		);
 	set_sc( WS_OVERTHRUSTMAX	, SC_MAXOVERTHRUST	, SI_MAXOVERTHRUST	, SCB_NONE );
 	set_sc( CG_LONGINGFREEDOM	, SC_LONGING		, SI_LONGING		, SCB_SPEED|SCB_ASPD );
@@ -3101,6 +3101,10 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		if( data && data->script )
 			run_script(data->script,0,sd->bl.id,0);
 	}
+	
+	if( sc->count && sc->data[SC_AUTOSPELL] ) 
+		pc_bonus3(sd, SP_AUTOSPELL_WHENHIT, sc->data[SC_AUTOSPELL]->val2, sc->data[SC_AUTOSPELL]->val3, 5 + sc->data[SC_AUTOSPELL]->val1*2);
+	
 
 	for (i = 0; i < MAX_PC_BONUS_SCRIPT; i++) { //Process script Bonus [Cydh]
 		if (!(&sd->bonus_script[i]) || !sd->bonus_script[i].script)
@@ -5964,7 +5968,10 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 		speed = speed * 100 / sc->data[SC_WALKSPEED]->val1;
 	if( sc->data[SC_REBOUND] )
 		speed += max(speed, 100);
-
+		
+	if( sc->data[SC_GRAVITATION] )
+		speed = 400;
+			
 	return (short)cap_value(speed,10,USHRT_MAX);
 }
 

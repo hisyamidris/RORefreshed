@@ -5116,6 +5116,13 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				switch(skill_id){
 					case MG_NAPALMBEAT:
 						skillratio += skill_lv*10-30;
+						if( tsc && tsc->data[SC_CURSE] ){
+						skillratio += (skillratio/100*(30*25));
+							status_change_end(target, SC_WEAKENEDSOUL, INVALID_TIMER);
+						} else if( tsc && tsc->data[SC_WEAKENEDSOUL] ){
+							skillratio += (skillratio/100*(tsc->data[SC_WEAKENEDSOUL]->val1*25));
+							status_change_end(target, SC_WEAKENEDSOUL, INVALID_TIMER);
+						}
 						break;
 					case MG_FIREBALL:
 #ifdef RENEWAL
@@ -5127,6 +5134,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case MG_SOULSTRIKE:
 						if (battle_check_undead(tstatus->race,tstatus->def_ele))
 							skillratio += 5*skill_lv;
+						if( tsc && tsc->data[SC_WEAKENEDSOUL] ){
+							skillratio += (skillratio/100*(tsc->data[SC_WEAKENEDSOUL]->val1*5));
+						}
 						break;
 					case MG_FIREWALL:
 						skillratio -= 50;

@@ -994,6 +994,45 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		sc_start(src,bl,SC_FREEZE,skill_lv*5+33,skill_lv,skill_get_time2(skill_id,skill_lv));
 		break;
 
+	case MG_SOULSTRIKE:
+		{
+		sc_start(src,bl,SC_CURSE,skill_lv*3,skill_lv,5000);
+			short val1 = 0;
+			if (tsc->data[SC_WEAKENEDSOUL]){
+				val1 = (tsc->data[SC_WEAKENEDSOUL]->val1);
+				ShowDebug ("%d \n",val1);
+			}
+			switch(skill_lv){
+				case 1:
+				case 2:
+					val1 += 1;
+					break;
+				case 3:
+				case 4:
+					val1 += 2;
+					break;
+				case 5:
+				case 6:
+					val1 += 3;
+					break;
+				case 7:
+				case 8:
+					val1 += 4;
+					break;
+				case 9:
+				case 10:
+					val1 += 5;
+					break;
+				default:
+					val1 = 0;
+					break;
+			}
+			if (val1>30)
+				val1 = 30;
+			sc_start(src,bl,SC_WEAKENEDSOUL,100,val1,15000);
+		}
+		break;
+
 	case WZ_STORMGUST:
 	/**
 	 * Storm Gust counter was dropped in renewal
@@ -4690,17 +4729,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 
 	// Celest
 	case PF_SOULBURN:
-		if (rnd()%100 < (skill_lv < 5 ? 30 + skill_lv * 10 : 70)) {
+//		if (rnd()%100 < (skill_lv < 5 ? 30 + skill_lv * 10 : 70)) {
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 			if (skill_lv == 5)
-				skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
-			status_percent_damage(src, bl, 0, 100, false);
-		} else {
-			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
-			if (skill_lv == 5)
-				skill_attack(BF_MAGIC,src,src,src,skill_id,skill_lv,tick,flag);
-			status_percent_damage(src, src, 0, 100, false);
-		}
+//				skill_attack(BF_MAGIC,src,src,bl,skill_id,skill_lv,tick,flag);
+			status_percent_damage(src, bl, 0, skill_lv*5, false);
+//		} else {
+//			clif_skill_nodamage(src,src,skill_id,skill_lv,1);
+//			if (skill_lv == 5)
+//				skill_attack(BF_MAGIC,src,src,src,skill_id,skill_lv,tick,flag);
+//			status_percent_damage(src, src, 0, 100, false);
+//		}
 		break;
 
 	case NPC_BLOODDRAIN:

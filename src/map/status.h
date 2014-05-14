@@ -705,6 +705,9 @@ typedef enum sc_type {
 #ifdef RENEWAL
 	SC_EXTREMITYFIST2, //! NOTE: This SC should be right before SC_MAX, so it doesn't disturb if RENEWAL is disabled
 #endif
+
+	SC_WEAKENEDSOUL = 600, //This status will increase damage from Napalm Beat [Kichi]
+	
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds.
 } sc_type;
 
@@ -1519,6 +1522,7 @@ enum si_type {
 	SI_GET_MAILBOX = 814,
 	SI_JUMPINGCLAN = 815,
 	SI_JP_OTP = 816,
+	SI_WEAKENEDSOUL = 900,
 	SI_MAX,
 };
 
