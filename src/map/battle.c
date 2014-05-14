@@ -852,7 +852,11 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 		}
 
 		// attack blocked by Parrying
-		if( (sce=sc->data[SC_PARRYING]) && flag&BF_WEAPON && skill_id != WS_CARTTERMINATION && rnd()%100 < sce->val2 ) {
+		if( (sce=sc->data[SC_PARRYING]) 
+//		&& flag&BF_WEAPON 
+		&& skill_id != WS_CARTTERMINATION 
+//		&& rnd()%100 < sce->val2 
+		) {
 			clif_skill_nodamage(bl, bl, LK_PARRYING, sce->val1,1);
 			return 0;
 		}
@@ -4378,13 +4382,13 @@ struct Damage battle_calc_weapon_final_atk_modifiers(struct Damage wd, struct bl
 #endif
 
 	//Reject Sword bugreport:4493 by Daegaladh
-	if(wd.damage && tsc && tsc->data[SC_REJECTSWORD] &&
-		(src->type!=BL_PC || (
-			((TBL_PC *)src)->weapontype1 == W_DAGGER ||
-			((TBL_PC *)src)->weapontype1 == W_1HSWORD ||
-			((TBL_PC *)src)->status.weapon == W_2HSWORD
-		)) &&
-		rnd()%100 < tsc->data[SC_REJECTSWORD]->val2
+	if(wd.damage && tsc && tsc->data[SC_REJECTSWORD] //&&
+//		(src->type!=BL_PC || (
+//			((TBL_PC *)src)->weapontype1 == W_DAGGER ||
+//			((TBL_PC *)src)->weapontype1 == W_1HSWORD ||
+//			((TBL_PC *)src)->status.weapon == W_2HSWORD
+//		)) &&
+//		rnd()%100 < tsc->data[SC_REJECTSWORD]->val2
 		) {
 		ATK_RATER(wd.damage, 50)
 		status_fix_damage(target,src,wd.damage,clif_damage(target,src,gettick(),0,0,wd.damage,0,0,0));
@@ -6383,15 +6387,17 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		else if (sc->data[SC_CLOAKINGEXCEED] && !(sc->data[SC_CLOAKINGEXCEED]->val4 & 2))
 			status_change_end(src, SC_CLOAKINGEXCEED, INVALID_TIMER);
 	}
-	if( tsc && tsc->data[SC_AUTOCOUNTER] && status_check_skilluse(target, src, KN_AUTOCOUNTER, 1) )
+	if( tsc && tsc->data[SC_AUTOCOUNTER] 
+	&& status_check_skilluse(target, src, KN_AUTOCOUNTER, 1) 
+	)
 	{
 		uint8 dir = map_calc_dir(target,src->x,src->y);
 		int t_dir = unit_getdir(target);
 		int dist = distance_bl(src, target);
-		if(dist <= 0 ||
+//		if(dist <= 0 ||
 //[Shade]		(!map_check_dir(dir,t_dir) && 
-		dist <= tstatus->rhw.range+1)
-		{
+//		dist <= tstatus->rhw.range+1)
+//		{
 			uint16 skill_lv = tsc->data[SC_AUTOCOUNTER]->val1;
 //			clif_skillcastcancel(target); //Remove the casting bar. [Skotlex]
 			clif_damage(src, target, tick, sstatus->amotion, 1, 0, 1, 0, 0); //Display MISS.
@@ -6400,7 +6406,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			if (tsc->data[SC_CRUSHSTRIKE])
 				status_change_end(target, SC_CRUSHSTRIKE, INVALID_TIMER);
 			return ATK_BLOCK;
-		}
+//		}
 	}
 
 	if( tsc && tsc->data[SC_BLADESTOP_WAIT] && !is_boss(src) && (src->type == BL_PC || tsd == NULL || distance_bl(src, target) <= (tsd->status.weapon == W_FIST ? 1 : 2)) )

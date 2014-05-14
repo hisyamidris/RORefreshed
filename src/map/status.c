@@ -8344,7 +8344,7 @@ int status_change_start(struct block_list* src, struct block_list* bl,enum sc_ty
 			val2=val1*5; // Race/Ele resist
 			break;
 		case SC_REFLECTSHIELD:
-			val2=10+val1*3; // %Dmg reflected
+			val2=val1*10; // %Dmg reflected each level 10% [Kichi]
 			if( !(flag&1) && (bl->type&(BL_PC|BL_MER)) ) {
 				struct map_session_data *tsd;
 				if( sd ) {
@@ -8594,10 +8594,7 @@ int status_change_start(struct block_list* src, struct block_list* bl,enum sc_ty
 			if( !(flag&1) ) {
 				struct map_session_data *tsd;
 				int i;
-				for( i = val2 = 0; i < val1; i++) {
-					int t = 5-(i>>1);
-					val2 += (t < 0)? 1:t;
-				}
+				val2 = val1*10; // 10% chance to block for each level. [Kichi]
 
 				if( bl->type&(BL_PC|BL_MER) ) {
 					if( sd ) {

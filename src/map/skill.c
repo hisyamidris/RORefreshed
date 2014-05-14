@@ -365,6 +365,8 @@ int skill_calc_heal(struct block_list *src, struct block_list *target, uint16 sk
 			#else
 				hp = (status_get_lv(src) + status_get_int(src)) / 8 * (4 + ( (skill_id == AB_HIGHNESSHEAL ? ((sd) ? pc_checkskill(sd,AL_HEAL) : skill_get_max(AL_HEAL)) : skill_lv) * 8));
 			#endif
+			if ((skill_id == AL_HEAL) && ((sd->class_&MAPID_UPPERMASK) == MAPID_CRUSADER)) //Demon Bane from crusader will increase the heal [Kichi]
+				hp += hp/100 * (pc_checkskill(sd,AL_DEMONBANE)*5);
 			if (skill_id == AB_HIGHNESSHEAL)
 				hp = hp * ( 17 + 3 * skill_lv ) / 10;
 			if( sd && ((skill = pc_checkskill(sd, HP_MEDITATIO)) > 0) )
@@ -1083,8 +1085,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		break;
 
 	case RG_RAID:
-		sc_start(src,bl,SC_STUN,(10+3*skill_lv),skill_lv,skill_get_time(skill_id,skill_lv));
-		sc_start(src,bl,SC_BLIND,(10+3*skill_lv),skill_lv,skill_get_time2(skill_id,skill_lv));
+		sc_start(src,bl,SC_STUN,100,skill_lv,skill_get_time(skill_id,skill_lv));
+		sc_start(src,bl,SC_BLIND,100,skill_lv,skill_get_time2(skill_id,skill_lv));
 
 #ifdef RENEWAL
 		sc_start(src,bl,SC_RAID,100,7,5000);
@@ -1184,7 +1186,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 
 	case LK_HEADCRUSH: //Headcrush has chance of causing Bleeding status, except on demon and undead element
 		if (!(battle_check_undead(tstatus->race, tstatus->def_ele) || tstatus->race == RC_DEMON))
-			sc_start2(src,bl, SC_BLEEDING,50, skill_lv, src->id, skill_get_time2(skill_id,skill_lv));
+			sc_start2(src,bl, SC_BLEEDING,100, skill_lv, src->id, skill_get_time2(skill_id,skill_lv));
 		break;
 
 	case LK_JOINTBEAT:
@@ -3560,14 +3562,16 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr_t data)
 				break;
 
 			switch(skl->skill_id) {
-				case RG_INTIMIDATE:
-					if (unit_warp(src,-1,-1,-1,CLR_TELEPORT) == 0) {
-						short x,y;
-						map_search_freecell(src, 0, &x, &y, 1, 1, 0);
+				case RG_INTIMIDATE:{
+					short x,y;
+						
+					skill_blown(src,src,10, unit_getdir(src), 0x1 );	
+					clif_fixpos(src); //Aegis sent this packet
+					map_search_freecell(src, 0, &x, &y, 1, 1, 0);
 						if (target != src && !status_isdead(target))
 							unit_warp(target, -1, x, y, CLR_TELEPORT);
-					}
 					break;
+									}
 				case BA_FROSTJOKER:
 				case DC_SCREAM:
 					range= skill_get_splash(skl->skill_id, skl->skill_lv);
@@ -6916,12 +6920,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 		int d = 0;
 
 		//Rate in percent
-		if ( skill_id == ST_FULLSTRIP ) {
-			i = 5 + 2*skill_lv + (sstatus->dex - tstatus->dex)/5;
-		} else if( skill_id == SC_STRIPACCESSARY ) {
-			i = 12 + 2 * skill_lv + (sstatus->dex - tstatus->dex)/5;
-		} else {
+		if ( skill_id == GC_WEAPONCRUSH ) {
 			i = 5 + 5*skill_lv + (sstatus->dex - tstatus->dex)/5;
+		} else {
+			i = 100; // Rate 100% for all strip skill [Kichi]
 		}
 
 		if (i < 5) i = 5; //Minimum rate 5%
@@ -6934,7 +6936,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 			else
 				d += skill_lv * 30 + (sstatus->dex - tstatus->dex) / 2;
 		}else
-			d = skill_get_time(skill_id,skill_lv) + (sstatus->dex - tstatus->dex)*500;
+			d = skill_get_time(skill_id,skill_lv);
 
 		if (d < 0) d = 0; //Minimum duration 0ms
 
