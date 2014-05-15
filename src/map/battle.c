@@ -5917,8 +5917,9 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 #endif
 		break;
 	case HW_GRAVITATION:
-		md.damage = 200+200*skill_lv;
-		md.dmotion = 0; //No flinch animation.
+//		md.damage = 200+200*skill_lv;
+		md.damage = 100*skill_lv;
+//		md.dmotion = 0; //No flinch animation.
 		break;
 	case NPC_EVILLAND:
 		md.damage = skill_calc_heal(src,target,skill_id,skill_lv,false);
@@ -6360,18 +6361,21 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		if (sd->state.arrow_atk)
 		{
 			int index = sd->equip_index[EQI_AMMO];
-			if (index<0) {
-				clif_arrow_fail(sd,0);
-				return ATK_NONE;
+			if (sd->status.weapon != W_BOW){
+				if (index<0) {
+					clif_arrow_fail(sd,0);
+					return ATK_NONE;
+				}
 			}
 			//Ammo check by Ishizu-chan
 			if (sd->inventory_data[index])
 			switch (sd->status.weapon) {
 			case W_BOW:
-				if (sd->inventory_data[index]->look != A_ARROW) {
+/*				if (sd->inventory_data[index]->look != A_ARROW) {
 					clif_arrow_fail(sd,0);
 					return ATK_NONE;
 				}
+*/
 			break;
 			case W_REVOLVER:
 			case W_RIFLE:
@@ -6524,12 +6528,15 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			wd.damage *= 3; // Triple Damage
 
 		if( sd && sc->data[SC_FEARBREEZE] && sc->data[SC_FEARBREEZE]->val4 > 0 && sd->status.inventory[sd->equip_index[EQI_AMMO]].amount >= sc->data[SC_FEARBREEZE]->val4 && battle_config.arrow_decrement){
+			if (sd->status.weapon != W_BOW){
 			pc_delitem(sd,sd->equip_index[EQI_AMMO],sc->data[SC_FEARBREEZE]->val4,0,1,LOG_TYPE_CONSUME);
 			sc->data[SC_FEARBREEZE]->val4 = 0;
+			}
 		}
 	}
-	if (sd && sd->state.arrow_atk) //Consume arrow.
-		battle_consume_ammo(sd, 0, 0);
+	if (sd && sd->status.weapon != W_BOW)
+		if (sd && sd->state.arrow_atk) //Consume arrow.
+			battle_consume_ammo(sd, 0, 0);
 
 	damage = wd.damage + wd.damage2;
 	if( damage > 0 && src != target )
@@ -6632,6 +6639,14 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			}
 		}
 	}
+//Shade
+	if (sc && sc->data[SC_TRUESIGHT] 
+	&& rnd()%100 < 15
+	) {
+		sc_start(src,src,SC_PERFECTAIM,100,10,5000);
+		clif_specialeffect(src, 745, 0);
+	}
+	
 	if (sd) {
 		if( wd.flag&BF_SHORT && sc && sc->data[SC__AUTOSHADOWSPELL] && rnd()%100 < sc->data[SC__AUTOSHADOWSPELL]->val3 &&
 			sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].id != 0 && sd->status.skill[sc->data[SC__AUTOSHADOWSPELL]->val1].flag == SKILL_FLAG_PLAGIARIZED )

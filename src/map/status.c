@@ -437,6 +437,7 @@ void initChangeTables(void)
 	set_sc( ST_PRESERVE		, SC_PRESERVE		, SI_PRESERVE		, SCB_NONE );
 	set_sc( PF_DOUBLECASTING	, SC_DOUBLECAST		, SI_DOUBLECAST		, SCB_NONE );
 	set_sc( HW_GRAVITATION		, SC_GRAVITATION	, SI_GRAVITATION	, SCB_ASPD|SCB_SPEED );
+	set_sc( HT_PHANTASMIC		, SC_PHANTASMIC	, SI_PHANTASMIC	, SCB_SPEED );
 	add_sc( WS_CARTTERMINATION	, SC_STUN		);
 	set_sc( WS_OVERTHRUSTMAX	, SC_MAXOVERTHRUST	, SI_MAXOVERTHRUST	, SCB_NONE );
 	set_sc( CG_LONGINGFREEDOM	, SC_LONGING		, SI_LONGING		, SCB_SPEED|SCB_ASPD );
@@ -1066,6 +1067,16 @@ void initChangeTables(void)
 	StatusChangeFlagTable[SC_QUEST_BUFF2] |= SCB_BATK|SCB_MATK;
 	StatusChangeFlagTable[SC_QUEST_BUFF3] |= SCB_BATK|SCB_MATK;
 
+	StatusChangeFlagTable[SC_ARROW_NEUTRAL] |= SCB_ALL;
+	StatusChangeFlagTable[SC_ARROW_HOLY] |= SCB_ALL;
+	StatusChangeFlagTable[SC_ARROW_FIRE] |= SCB_ALL;
+	StatusChangeFlagTable[SC_ARROW_WATER] |= SCB_ALL;
+	StatusChangeFlagTable[SC_ARROW_WIND] |= SCB_ALL;
+	StatusChangeFlagTable[SC_ARROW_EARTH] |= SCB_ALL;
+	StatusChangeFlagTable[SC_ARROW_GHOST] |= SCB_ALL;
+	
+	StatusChangeFlagTable[SC_PERFECTAIM] |= SCB_ALL;
+
 #ifdef RENEWAL
 	// renewal EDP increases your weapon atk
 	StatusChangeFlagTable[SC_EDP] |= SCB_WATK;
@@ -1116,7 +1127,7 @@ void initChangeTables(void)
 
 	/* StatusChangeState (SCS_) NOMOVE */
 	StatusChangeStateTable[SC_ANKLE]				|= SCS_NOMOVE;
-	StatusChangeStateTable[SC_AUTOCOUNTER]			|= SCS_NOMOVE;
+//	StatusChangeStateTable[SC_AUTOCOUNTER]			|= SCS_NOMOVE;
 	StatusChangeStateTable[SC_TRICKDEAD]			|= SCS_NOMOVE;
 	StatusChangeStateTable[SC_BLADESTOP]			|= SCS_NOMOVE;
 	StatusChangeStateTable[SC_BLADESTOP_WAIT]		|= SCS_NOMOVE;
@@ -1785,7 +1796,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, uin
 			return 0;
 		}
 
-		if (skill_id != RK_REFRESH && sc->opt1 >0 && !(sc->opt1 == OPT1_CRYSTALIZE && src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE) { // Stuned/Frozen/etc
+		if (skill_id != RK_REFRESH && sc->opt1 >0 && !(sc->opt1 == OPT1_CRYSTALIZE && src->type == BL_MOB) && sc->opt1 != OPT1_BURNING && skill_id != SR_GENTLETOUCH_CURE && skill_id != NV_FIRSTAID) { // Stuned/Frozen/etc
 			if (flag != 1) // Can't cast, casted stuff can't damage.
 				return 0;
 			if (!(skill_get_inf(skill_id)&INF_GROUND_SKILL)) 
@@ -3105,7 +3116,42 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	if( sc->count && sc->data[SC_AUTOSPELL] ) 
 		pc_bonus3(sd, SP_AUTOSPELL_WHENHIT, sc->data[SC_AUTOSPELL]->val2, sc->data[SC_AUTOSPELL]->val3, 5 + sc->data[SC_AUTOSPELL]->val1*2);
 	
-
+	if( sc->count && sc->data[SC_ARROW_HOLY] ) {
+		struct item_data *data = itemdb_exists(sc->data[SC_ARROW_HOLY]->val1);
+		if( data && data->script )
+			run_script(data->script,0,sd->bl.id,0);
+	}
+	if( sc->count && sc->data[SC_ARROW_FIRE] ) {
+		struct item_data *data = itemdb_exists(sc->data[SC_ARROW_FIRE]->val1);
+		if( data && data->script )
+			run_script(data->script,0,sd->bl.id,0);
+	}
+	if( sc->count && sc->data[SC_ARROW_WATER] ) {
+		struct item_data *data = itemdb_exists(sc->data[SC_ARROW_WATER]->val1);
+		if( data && data->script )
+			run_script(data->script,0,sd->bl.id,0);
+	}
+	if( sc->count && sc->data[SC_ARROW_EARTH] ) {
+		struct item_data *data = itemdb_exists(sc->data[SC_ARROW_EARTH]->val1);
+		if( data && data->script )
+			run_script(data->script,0,sd->bl.id,0);
+	}
+	if( sc->count && sc->data[SC_ARROW_WIND] ) {
+		struct item_data *data = itemdb_exists(sc->data[SC_ARROW_WIND]->val1);
+		if( data && data->script )
+			run_script(data->script,0,sd->bl.id,0);
+	}
+	if( sc->count && sc->data[SC_ARROW_GHOST] ) {
+		struct item_data *data = itemdb_exists(sc->data[SC_ARROW_GHOST]->val1);
+		if( data && data->script )
+			run_script(data->script,0,sd->bl.id,0);
+	}
+	if( sc->count && sc->data[SC_ARROW_NEUTRAL] ) {
+		struct item_data *data = itemdb_exists(sc->data[SC_ARROW_NEUTRAL]->val1);
+		if( data && data->script )
+			run_script(data->script,0,sd->bl.id,0);
+	}
+	
 	for (i = 0; i < MAX_PC_BONUS_SCRIPT; i++) { //Process script Bonus [Cydh]
 		if (!(&sd->bonus_script[i]) || !sd->bonus_script[i].script)
 			continue;
@@ -5971,7 +6017,8 @@ static unsigned short status_calc_speed(struct block_list *bl, struct status_cha
 		
 	if( sc->data[SC_GRAVITATION] )
 		speed = 400;
-			
+	if( sc->data[SC_PHANTASMIC] )
+		speed += speed * 50 / 100;			
 	return (short)cap_value(speed,10,USHRT_MAX);
 }
 
@@ -9033,6 +9080,9 @@ int status_change_start(struct block_list* src, struct block_list* bl,enum sc_ty
 			break;
 		case SC_SUFFRAGIUM:
 			val2 = 15 * val1; // Speed cast decrease
+			break;
+		case SC_PERFECTAIM:
+			val2 = 150000000000 * val1; // Speed cast decrease
 			break;
 		case SC_INCHEALRATE:
 			if (val1 < 1)

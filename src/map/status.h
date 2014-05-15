@@ -707,7 +707,16 @@ typedef enum sc_type {
 #endif
 
 	SC_WEAKENEDSOUL = 600, //This status will increase damage from Napalm Beat [Kichi]
-	
+	SC_ARROW_NEUTRAL = 601,
+	SC_ARROW_HOLY,
+	SC_ARROW_FIRE,
+	SC_ARROW_WATER,
+	SC_ARROW_WIND,
+	SC_ARROW_EARTH,
+	SC_ARROW_GHOST,
+	SC_PERFECTAIM,
+	SC_PHANTASMIC,
+
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds.
 } sc_type;
 
@@ -1523,6 +1532,15 @@ enum si_type {
 	SI_JUMPINGCLAN = 815,
 	SI_JP_OTP = 816,
 	SI_WEAKENEDSOUL = 900,
+	SI_ARROW_NEUTRAL = 901,
+	SI_ARROW_HOLY,
+	SI_ARROW_FIRE,
+	SI_ARROW_WATER,
+	SI_ARROW_WIND,
+	SI_ARROW_EARTH,
+	SI_ARROW_GHOST,
+	SI_PERFECTAIM,
+	SI_PHANTASMIC,
 	SI_MAX,
 };
 
@@ -2016,6 +2034,8 @@ int status_calc_elemental_(struct elemental_data *ed, bool first);
 void status_calc_misc(struct block_list *bl, struct status_data *status, int level);
 void status_calc_regen(struct block_list *bl, struct status_data *status, struct regen_data *regen);
 void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, struct status_change *sc);
+
+void status_display_add (struct map_session_data *sd, enum sc_type type, int dval1, int dval2, int dval3);
 
 int status_check_skilluse(struct block_list *src, struct block_list *target, uint16 skill_id, int flag); // [Skotlex]
 int status_check_visibility(struct block_list *src, struct block_list *target); //[Skotlex]

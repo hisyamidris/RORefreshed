@@ -3364,6 +3364,33 @@ void clif_arrow_create_list(struct map_session_data *sd)
 	}
 }
 
+/**
+ * Arrow elemental List [Kichi] 
+ **/
+void clif_arrow_element_list(struct map_session_data *sd)
+{
+	int a,c = 0;
+	int fd;
+
+	nullpo_retv(sd);
+
+	fd = sd->fd;
+	WFIFOHEAD(fd, MAX_SKILL_ARROW_DB*2+4);
+	WFIFOW(fd,0) = 0x1ad;
+	
+	for(a = 1750; a <= 1757; a++){
+		if(a == 1753)
+			continue;
+		WFIFOW(fd,c*2+4) = a;
+		c++;
+	}
+	WFIFOW(fd,2) = c*2+4;
+	WFIFOSET(fd, WFIFOW(fd,2));
+	if (c > 0) {
+		sd->menuskill_id = AC_MAKINGARROW;
+		sd->menuskill_val = c;
+	}
+}
 
 /// Notifies the client, about the result of an status change request (ZC_STATUS_CHANGE_ACK).
 /// 00bc <status id>.W <result>.B <value>.B
@@ -11725,7 +11752,8 @@ void clif_parse_SelectArrow(int fd,struct map_session_data *sd){
 	}
 	switch( sd->menuskill_id ) {
 		case AC_MAKINGARROW:
-			skill_arrow_create(sd,nameid);
+//			skill_arrow_create(sd,nameid);
+			skill_arrow_element(sd,nameid);
 			break;
 		case SA_CREATECON:
 			skill_produce_mix(sd,SA_CREATECON,nameid,0,0,0, 1);

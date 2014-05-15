@@ -1116,7 +1116,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, uint
 		break;
 
 	case CR_SHIELDCHARGE:
-		sc_start(src,bl,SC_STUN,(15+skill_lv*5),skill_lv,skill_get_time2(skill_id,skill_lv));
+		sc_start(src,bl,SC_STUN,20*skill_lv,skill_lv,skill_lv*1000);
 		break;
 
 	case PA_PRESSURE:
@@ -4168,7 +4168,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		if( path )
 		{
 			skill_attack(BF_WEAPON, src, src, bl, skill_id, skill_lv, tick, dist);
-			skill_blown(src, bl, dist, dir, 0);
+			skill_blown(src, bl, 1, dir, 0);
 			//HACK: since knockback officially defaults to the left, the client also turns to the left... therefore,
 			// make the caster look in the direction of the target
 			unit_setdir(src, (dir+4)%8);
@@ -4181,8 +4181,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, uint
 		if (sd) pc_overheat(sd,1);
 	case SN_SHARPSHOOTING:
 	case MA_SHARPSHOOTING:
+//		if (sc->data[SC_PERFECTAIM])	sc_start(src,src,SC_PERFECTAIM,100,10,15000); //shade
 	case NJ_KAMAITACHI:
 	case LG_CANNONSPEAR:
+
 		//It won't shoot through walls since on castend there has to be a direct
 		//line of sight between caster and target.
 		skill_area_temp[1] = bl->id;
@@ -6374,7 +6376,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 
 	case AC_MAKINGARROW:
 		if(sd) {
-			clif_arrow_create_list(sd);
+//			clif_arrow_create_list(sd);
+			clif_arrow_element_list(sd);
 			clif_skill_nodamage(src,bl,skill_id,skill_lv,1);
 		}
 		break;
@@ -6735,6 +6738,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 	case NV_FIRSTAID:
 		clif_skill_nodamage(src,bl,skill_id,5,1);
 		status_heal(bl,5,0,0);
+		status_change_end(bl, SC_DEEPSLEEP, INVALID_TIMER);
+		status_change_end(bl, SC_STONE, INVALID_TIMER);
+		status_change_end(bl, SC_FREEZE, INVALID_TIMER);
+		status_change_end(bl, SC_STUN, INVALID_TIMER);
+		status_change_end(bl, SC_SILENCE, INVALID_TIMER);
 		break;
 
 	case AL_CURE:
@@ -15257,6 +15265,10 @@ int skill_castfix_sc (struct block_list *bl, int time)
 			time -= time * sc->data[SC_SUFFRAGIUM]->val2 / 100;
 			status_change_end(bl, SC_SUFFRAGIUM, INVALID_TIMER);
 		}
+		if (sc->data[SC_PERFECTAIM]) {
+			time -= time;
+			status_change_end(bl, SC_PERFECTAIM, INVALID_TIMER);
+		}
 		if (sc->data[SC_MEMORIZE]) {
 			time>>=1;
 			if ((--sc->data[SC_MEMORIZE]->val2) <= 0)
@@ -15297,7 +15309,7 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 		time = time * 80 / 100; // variable time
 	}else if( fixed < 0 ) // no fixed cast time
 		fixed = 0;
-
+		
 	if(sd  && !(skill_get_castnodex(skill_id, skill_lv)&4) ){ // Increases/Decreases fixed/variable cast time of a skill by item/card bonuses.
 		if( sd->bonus.varcastrate < 0 )
 			VARCAST_REDUCTION(sd->bonus.varcastrate);
@@ -15339,6 +15351,15 @@ int skill_vfcastfix (struct block_list *bl, double time, uint16 skill_id, uint16
 			VARCAST_REDUCTION(sc->data[SC_SUFFRAGIUM]->val2);
 			status_change_end(bl, SC_SUFFRAGIUM, INVALID_TIMER);
 		}
+		
+		if (sc->data[SC_PERFECTAIM] && (skill_id == 382 || skill_id == 8215)) {
+			VARCAST_REDUCTION(100);
+			time = 0;
+			fixed = 0;
+			fixcast_r = 0;
+			status_change_end(bl, SC_PERFECTAIM, INVALID_TIMER);
+		}
+		
 		if (sc->data[SC_MEMORIZE]) {
 			VARCAST_REDUCTION(50);
 			if ((--sc->data[SC_MEMORIZE]->val2) <= 0)
@@ -18365,6 +18386,62 @@ int skill_spellbook (struct map_session_data *sd, int nameid) {
 
 	return 1;
 }
+
+/*
+Elemental list [Kichi]
+*/
+int skill_arrow_element( struct map_session_data *sd, int nameid) {
+	int tick, val1, val4=0, rate, flag;
+	nullpo_ret(sd);
+ 
+//	ShowDebug ("%d\n",nameid);
+	flag = 1; tick = -1;
+	rate = 10000;
+	val1 = 0;
+	if (sd->sc.data[SC_ARROW_NEUTRAL])
+		status_change_end(&sd->bl,SC_ARROW_NEUTRAL,INVALID_TIMER);
+	if (sd->sc.data[SC_ARROW_HOLY])
+		status_change_end(&sd->bl,SC_ARROW_HOLY,INVALID_TIMER);
+	if (sd->sc.data[SC_ARROW_FIRE])
+		status_change_end(&sd->bl,SC_ARROW_FIRE,INVALID_TIMER);
+	if (sd->sc.data[SC_ARROW_WATER])
+		status_change_end(&sd->bl,SC_ARROW_WATER,INVALID_TIMER);
+	if (sd->sc.data[SC_ARROW_WIND])
+		status_change_end(&sd->bl,SC_ARROW_WIND,INVALID_TIMER);
+	if (sd->sc.data[SC_ARROW_EARTH])
+		status_change_end(&sd->bl,SC_ARROW_EARTH,INVALID_TIMER);
+	if (sd->sc.data[SC_ARROW_GHOST])
+		status_change_end(&sd->bl,SC_ARROW_GHOST,INVALID_TIMER);
+	switch(nameid){
+	case 1750:
+		status_change_start(&sd->bl,&sd->bl, SC_ARROW_NEUTRAL, rate, nameid, 0, 0, val4, tick, flag);
+	break;
+	case 1751:
+		status_change_start(&sd->bl,&sd->bl, SC_ARROW_HOLY, rate, nameid, 0, 0, val4, tick, flag);
+	break;
+	case 1752:
+		status_change_start(&sd->bl,&sd->bl, SC_ARROW_FIRE, rate, nameid, 0, 0, val4, tick, flag);
+	break;
+	case 1754:
+		status_change_start(&sd->bl,&sd->bl, SC_ARROW_WATER, rate, nameid, 0, 0, val4, tick, flag);
+	break;
+	case 1755:
+		status_change_start(&sd->bl,&sd->bl, SC_ARROW_WIND, rate, nameid, 0, 0, val4, tick, flag);
+	break;
+	case 1756:
+		status_change_start(&sd->bl,&sd->bl, SC_ARROW_EARTH, rate, 4302, 0, 0, val4, tick, flag);
+	break;
+	case 1757:
+		status_change_start(&sd->bl,&sd->bl, SC_ARROW_GHOST, rate, nameid, 0, 0, val4, tick, flag);
+	break;
+	default:
+		
+	break;
+	}
+	
+	return 0;
+}
+
 
 int skill_select_menu(struct map_session_data *sd,uint16 skill_id) {
 	int id, lv, prob, aslvl = 0;
